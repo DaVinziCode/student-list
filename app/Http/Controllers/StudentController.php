@@ -6,6 +6,7 @@ use App\Models\Students;
 use DB;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Intervention\Image\Facades\Image;
 
 class StudentController extends Controller
 {
@@ -22,11 +23,6 @@ class StudentController extends Controller
         return view('students.index', $data);
     }
 
-    public function show($id)
-    {
-        $data = Students::findOrFail($id);
-        return view('students.edit', ['student' => $data]);
-    }
 
     public function create()
     {
@@ -41,31 +37,103 @@ class StudentController extends Controller
             "gender" => 'required',
             "age" => 'required',
             "email" => ['required', 'email', Rule::unique('students', 'email')],
-
-
         ]);
+
+        if ($request->hasFile('student_image')) {
+            $request->validate([
+                'student_image'=> 'mimes:jpeg,png,bmp,tiff |max:4096',
+            ]);
+
+            $filenameWithExtension = $request->file('student_image');
+
+            $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
+
+            $extension = $request->file('student_image')->getClientOriginalExtension();
+
+            $filenameToStore = $filename .'_'.time().'.'.$extension;
+
+            $smallThumbnail = $filename .'_'.time().'.'.$extension;
+
+            $request->file('student_image')->storeAs('public/student', $filenameToStore);
+
+            $request->file('student_image')->storeAs('public/student/thumbnail', $smallThumbnail);
+
+            $thumbNail = 'storage/student/thumbnail/' . $smallThumbnail;
+
+            $this->createThumbnail($thumbNail, 150, 93);
+
+            $validated['student_image'] = $filenameToStore;
+
+        }
 
         Students::create($validated);
 
         return redirect('/')->with('message', 'New Student was added successfully!');
     }
 
-    public function update(Students $student, Request $request)
+    public function edit(Students $student){
+        return view('students.edit', ['student'=> $student]);
+    }
+
+    public function show(Students $student){
+        return view('students.show', ['student'=> $student]);
+    }
+
+
+    public function update(Request $request, Students $student)
     {
         $data = $request->validate([
             "first_name" => 'required',
             "last_name" => 'required',
             "gender" => 'required',
-            "age" => 'nullable',
-            "email" => ['required', 'email'],
+            "age" => 'required',
+            "email" => 'required',
         ]);
 
-        $student->update($data);
+        if ($request->hasFile('student_image')) {
+            $request->validate([
+                'student_image'=> 'mimes:jpeg,png,bmp,tiff |max:4096',
+            ]);
 
-        return back()->with('message', 'Data was successfully updated!');
+            $filenameWithExtension = $request->file('student_image');
+
+            $filename = pathinfo($filenameWithExtension, PATHINFO_FILENAME);
+
+            $extension = $request->file('student_image')->getClientOriginalExtension();
+
+            $filenameToStore = $filename .'_'.time().'.'.$extension;
+
+            $smallThumbnail = $filename .'_'.time().'.'.$extension;
+
+            $request->file('student_image')->storeAs('public/student', $filenameToStore);
+
+            $request->file('student_image')->storeAs('public/student/thumbnail', $smallThumbnail);
+
+            $thumbNail = 'storage/student/thumbnail/' . $smallThumbnail;
+
+            $this->createThumbnail($thumbNail, 150, 93);
+
+            $data['student_image'] = $filenameToStore;
+
+        }
+
+        $student->update($data);
+        return redirect('/')->with('message', 'Data was successfully updated!');
+
+
+    }
+
+    public function destroy(Students $student){
+        $student->delete();
+        return redirect('/')->with('message', 'Data was successfully deleted!');
     }
 
 
-
-
+    public function createThumbnail($path, $width, $height){
+        $img = Image::make($path)->resize($width, $height, function
+        ($constraint){
+            $constraint->aspectRatio();
+        });
+        $img->save($path);
+    }
 }
