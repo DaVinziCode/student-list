@@ -9,9 +9,9 @@
     </a>
 </header>
 
-<main class="bg-white max-w-lg mx-auto p-8 my-10 rounded-lg shadow-2xl">
+<main class="bg-white max-w-lg mx-auto p-8 my-8 rounded-lg shadow-2xl">
 
-    <section class="mt-5">
+    <section>
         <form action="/student/{{ $student->id }}/update" method="POST" class="flex flex-col"
             enctype="multipart/form-data">
             @csrf
@@ -26,7 +26,7 @@
                         $student->last_name;
                 @endphp
 
-                <img class="w-[200px] h-[200px] rounded-full" src="{{ $student->student_image ? asset('storage/student/thumbnail/' . $student->student_image) : $default_profile }}"
+                <img class="w-[100px] h-[100px] rounded-full" src="{{ $student->student_image ? asset('storage/student/thumbnail/' . $student->student_image) : $default_profile }}"
                     alt="">
 
             </div>

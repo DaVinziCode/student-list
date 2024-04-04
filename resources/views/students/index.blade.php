@@ -11,7 +11,7 @@
 </header>
 <section class="mt-10">
     <div class="overflow-x-auto relative">
-        <table class="w-3 mx-auto w-full text-sm text-left text-gray-500">
+        <table class="w-4 mx-auto w-full text-sm text-left text-gray-500">
             <thead class="text-xs text gray-700 uppercase bg-gray-50">
                 <x-items />
             </thead>
